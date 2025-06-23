@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String
+  email     String     @unique
+  password  String
+  apiKeys   ApiKey[]
+  reviews   Review[]
+  orders    Order[]
+  cartItems CartItem[]
+  createdAt DateTime   @default(now())
+}
+
+model ApiKey {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  createdAt DateTime @default(now())
+}
+
+model Book {
+  id          Int          @id @default(autoincrement())
+  title       String
+  author      String?
+  description String?
+  price       Decimal      
+  stock       Int          @default(0)
+  reviews     Review[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+  createdAt   DateTime     @default(now())
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int  
+  comment   String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId    Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, bookId]) // one review per user per book
+}
+
+model Order {
+  id          Int          @id @default(autoincrement())
+  totalAmount Decimal     
+  status      String       @default("pending")
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  orderItems  OrderItem[]
+  payment     Payment?
+  createdAt   DateTime     @default(now())
+}
+
+model OrderItem {
+  id       Int     @id @default(autoincrement())
+  quantity Int
+  price    Decimal 
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId  Int     @unique
+  book     Book    @relation(fields: [bookId], references: [id])
+  bookId   Int
+}
+
+model CartItem {
+  id       Int   @id @default(autoincrement())
+  quantity Int
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int
+  book     Book  @relation(fields: [bookId], references: [id])
+  bookId   Int
+
+  @@unique([userId, bookId]) // one item per user-book pair
+}
+
+model Payment {
+  id        Int     @id @default(autoincrement())
+  paymentId String  @unique
+  amount    Decimal 
+  status    String  @default("initiated")
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   Int     @unique
+  createdAt DateTime @default(now())
+}

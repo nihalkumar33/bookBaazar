@@ -9,5 +9,11 @@
     "dev": "nodemon index.js"
   },
   "author": "Nihal Kumar",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.10.1",
+    "postgres": "^3.4.7",
+    "postgresql": "^0.0.1",
+    "prisma": "^6.10.1"
+  }
 }
